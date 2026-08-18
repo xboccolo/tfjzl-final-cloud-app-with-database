@@ -31,6 +31,8 @@ ALLOWED_HOSTS = []
 
 CSRF_TRUSTED_ORIGINS = ['https://*.cognitiveclass.ai']
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 # Application definition
 INSTALLED_APPS = [
     'onlinecourse.apps.OnlinecourseConfig',
