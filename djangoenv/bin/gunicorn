@@ -1,0 +1,8 @@
+#!/bin/sh
+'''exec' "/Users/a1234/Desktop/IBM COURSE/module 9/final project/tfjzl-final-cloud-app-with-database/djangoenv/bin/python3.12" "$0" "$@"
+' '''
+import sys
+from gunicorn.app.wsgiapp import run
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(run())
