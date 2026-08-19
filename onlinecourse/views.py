@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
-# <HINT> Import any new Models here
-from .models import Course, Enrollment
+from .models import Course, Enrollment, Question, Choice, Submission
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -69,6 +68,18 @@ def check_if_enrolled(user, course):
             is_enrolled = True
     return is_enrolled
 
+def submit(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    user = request.user
+    enrollment = Enrollment.objects.get(user=user, course=course)
+    # Create a submission object referring to the enrollment
+    submission = Submission.objects.create(enrollment=enrollment)
+    # Collect the selected choices from exam form
+    choices = extract_answers(request)
+    submission.choices.set(choices)
+    submission_id = submission.id
+    return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course.id, submission_id)))
+
 
 # CourseListView
 class CourseListView(generic.ListView):
@@ -130,7 +141,32 @@ def extract_answers(request):
         # Get the selected choice ids from the submission record
         # For each selected choice, check if it is a correct answer or not
         # Calculate the total score
-#def show_exam_result(request, course_id, submission_id):
+def show_exam_result(request, course_id, submission_id):
+    course = get_object_or_404(Course, pk=course_id)
+    submission = get_object_or_404(Submission, pk=submission_id)
+    # Get the selected choice ids from the submission record
+    choices = submission.choices.all()
+    # For each selected choice, check if it is a correct answer or not
+    total_score = 0
+    questions = course.question_set.all()
+
+
+    for question in questions:
+        correct_choice = question.choice_set.filter(is_correct=True) # Get all correct choices for the question.
+        selected_choices = choices.filter(question=question) # Get all selected (by the user) choices for the question.
+
+        # Check if the selected choices are correct
+        if set(selected_choices) == set(correct_choice):
+            total_score += question.grade
+
+    context = {
+        'course': course,
+        'total_score': total_score,
+        'choices': choices
+    }
+
+    return render(request, 'onlinecourse/show_exam_result_bootstrap.html', context)
+
 
 
 
